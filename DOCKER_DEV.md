@@ -69,3 +69,26 @@ docker compose -f docker-compose.dev.yml down
 ```bash
 docker compose -f docker-compose.dev.yml down -v
 ```
+
+## Migrar DB de QA a local (un comando)
+
+1. Completa en `.env.dev`:
+
+```env
+QA_DB_HOST=
+QA_DB_PORT=3306
+QA_DB_NAME=
+QA_DB_USERNAME=
+QA_DB_PASSWORD=
+LOCAL_DB_HOST=127.0.0.1
+LOCAL_DB_PORT=3308
+LOCAL_DB_NAME=joint_local
+LOCAL_DB_USERNAME=joint_user
+LOCAL_DB_PASSWORD=joint_pass
+```
+
+2. Ejecuta:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\sync-qa-to-local.ps1
+```
