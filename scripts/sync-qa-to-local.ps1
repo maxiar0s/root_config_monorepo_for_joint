@@ -101,20 +101,21 @@ $previousMysqlPwd = $env:MYSQL_PWD
 
 try {
   $env:MYSQL_PWD = $qaPassword
-  & mysqldump -h $qaHost -P $qaPort -u $qaUser --single-transaction --routines --triggers --set-gtid-purged=OFF $qaName > $dumpFile
+  & mysqldump -h $qaHost -P $qaPort -u $qaUser --single-transaction --routines --triggers --set-gtid-purged=OFF --result-file=$dumpFile $qaName
   if ($LASTEXITCODE -ne 0) {
     throw "mysqldump fallo con codigo $LASTEXITCODE"
   }
 
   Write-Host "Recreando base local (${localHost}:${localPort}/${localName})..."
   $env:MYSQL_PWD = $localPassword
-  & mysql -h $localHost -P $localPort -u $localUser -e "DROP DATABASE IF EXISTS \`$localName\`; CREATE DATABASE \`$localName\`;"
+  $recreateSql = ('DROP DATABASE IF EXISTS `{0}`; CREATE DATABASE `{0}`;' -f $localName)
+  & mysql -h $localHost -P $localPort -u $localUser -e $recreateSql
   if ($LASTEXITCODE -ne 0) {
     throw "No se pudo recrear la base local. Codigo $LASTEXITCODE"
   }
 
   Write-Host 'Importando dump en base local...'
-  $importCommand = "mysql -h $localHost -P $localPort -u $localUser $localName < `"$dumpFile`""
+  $importCommand = "mysql --binary-mode=1 -h $localHost -P $localPort -u $localUser $localName < `"$dumpFile`""
   cmd.exe /c $importCommand
   if ($LASTEXITCODE -ne 0) {
     throw "Importacion fallo con codigo $LASTEXITCODE"
